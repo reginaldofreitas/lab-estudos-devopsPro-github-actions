@@ -1,15 +1,24 @@
+---
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: estudos-pipeline-cicd
+---
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: web
+  name: estudos-pipeline-cicd
+  namespace: estudos-pipeline-cicd
+  labels:
+    app: estudos-pipeline-cicd  
 spec:
   selector:
     matchLabels:
-      app: web
+      app: estudos-pipeline-cicd
   template:
     metadata:
       labels:
-        app: web
+        app: estudos-pipeline-cicd
     spec:
       containers:
       - name: web
@@ -20,11 +29,31 @@ spec:
 apiVersion: v1
 kind: Service
 metadata:
-  name: web
+  name: estudos-pipeline-cicd
 spec:
   selector:
-    app: web
+    app: estudos-pipeline-cicd
   ports:
   - port: 80
     targetPort: 5000
   type: LoadBalancer
+---
+apiVersion: gateway.networking.k8s.io/v1
+kind: HTTPRoute
+metadata:
+  name: estudos-pipeline-cicd-route
+  namespace: estudos-pipeline-cicd
+spec:
+  parentRefs:
+  - name: main-gateway
+    namespace: gateway-system
+  hostnames:
+  - "estudos-pipeline-cicd.rsalesfreitas.int"
+  rules:
+  - matches:
+    - path:
+        type: PathPrefix
+        value: /
+    backendRefs:
+    - name: estudos-pipeline-cicd
+      port: 80
